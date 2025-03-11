@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background-image: url('/static/assets/img/table-coffee.jpg');
+            background-size: cover;
+            background-position: center;
+            color: #C5AB9F;
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row; /* Horizontal layout */
+            padding: 20px;
+        }
+
+        .filters {
+            width: 30%; /* Adjust filter section width */
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-right: 20px; /* Space between filters and cafe list */
+        }
+
+        .filters h2 {
+            margin-bottom: 10px;
+        }
+
+        .filters label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .filters input {
+            margin-right: 5px;
+        }
+
+        .cafe-list {
+            width: 70%; /* Adjust cafe list width */
+            display: flex;
+            flex-direction: column; /* Align cafes vertically */
+            gap: 20px;
+        }
+
+        .cafe {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .cafe img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .cafe-details {
+            flex: 1;
+        }
+
+        .cafe-name {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .cafe-address {
+            color: #777;
+        }
+
+        .cafe-time {
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .icons {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .icon {
+            margin-right: 10px;
+            color: green;
+        }
+
+        .ratings {
+            font-weight: bold;
+            color: green;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; /* Stack filters and cafe list vertically on small screens */
+            }
+
+            .filters,
+            .cafe-list {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/header.html' %}
+    <div class="header">
+        <h1>PluginCafe</h1>
+        <p>Your go-to spot for discovering cozy and work-friendly cafes.</p>
+    </div>
+
+    <div class="container">
+        <div class="filters">
+            <h2>Filters</h2>
+            <label><input type="checkbox" id="filter-calls"> Calls Allowed</label>
+            <label><input type="checkbox" id="filter-sockets"> Sockets</label>
+            <label><input type="checkbox" id="filter-toilet"> Toilet</label>
+            <label><input type="checkbox" id="filter-wifi"> Wifi</label>
+            <label for="filter-seats">Seats:</label>
+            <input type="number" id="filter-seats" min="1" placeholder="Minimum Seats">
+            <label for="filter-price">Price:</label>
+            <input type="text" id="filter-price" placeholder="Price (e.g. $)">
+        </div>
+        <div class="cafe-list">
+            {% for cafe in cafes %}
+            <div class="cafe" data-calls="{{ cafe.can_take_calls }}" data-sockets="{{ cafe.has_sockets }}" data-toilet="{{ cafe.has_toilet }}" data-wifi="{{ cafe.has_wifi }}" data-seats="{{ cafe.seats }}" data-price="{{ cafe.coffee_price }}">
+                <img src="{{ cafe.img_url }}" alt="{{ cafe.name }}">
+                <div class="cafe-details">
+                    <a href="{{ url_for('show_cafe', cafe_id=cafe.id) }}" style="text-decoration: none; color: inherit;">
+                        <div class="cafe-name">{{ cafe.name }}</div>
+                        <div class="cafe-address">{{ cafe.address }}</div>
+                        <div class="cafe-time">Open: {{ cafe.open_time }} - {{ cafe.close_time }}</div>
+                        <div class="icons">
+                            {% if cafe.has_wifi %}<span class="icon">⚡ Wi-Fi</span>{% endif %}
+                            {% if cafe.has_sockets %}<span class="icon">🔌 Sockets</span>{% endif %}
+                            {% if cafe.can_take_calls %}<span class="icon">📞 Calls Allowed</span>{% endif %}
+                            {% if cafe.has_toilet %}<span class="icon">🚻 Toilet</span>{% endif %}
+                            {% if cafe.seats %}<span class="icon">🪑 Seats: {{ cafe.seats }}</span>{% endif %}
+                            {% if cafe.coffee_price %}<span class="icon">Pricing: {{ cafe.coffee_price }}</span>{% endif %}
+                        </div>
+                        <div class="ratings">Rating: {{ cafe.rating }} </div>
+                        {% if current_user.id == 1: %}
+                        <a href="{{url_for('delete_cafe', cafe_id=cafe.id) }}">✘</a>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+            {% if current_user.id == 1: %}
+            <a class="btn btn-primary float-right" href="{{url_for('add_new_cafe')}}">Create New Cafe</a>
+            {% endif %}
+        </div>
+
+
+    </div>
+
+    <script>
+        const filters = {
+            calls: document.getElementById('filter-calls'),
+            sockets: document.getElementById('filter-sockets'),
+            toilet: document.getElementById('filter-toilet'),
+            wifi: document.getElementById('filter-wifi'),
+            seats: document.getElementById('filter-seats'),
+            price: document.getElementById('filter-price')
+        };
+
+        const cafes = document.querySelectorAll('.cafe');
+
+        function applyFilters() {
+            cafes.forEach(cafe => {
+                const matchesCalls = !filters.calls.checked || cafe.dataset.calls === 'True';
+                const matchesSockets = !filters.sockets.checked || cafe.dataset.sockets === 'True';
+                const matchesToilet = !filters.toilet.checked || cafe.dataset.toilet === 'True';
+                const matchesWifi = !filters.wifi.checked || cafe.dataset.wifi === 'True';
+                const matchesSeats = !filters.seats.value || parseInt(cafe.dataset.seats) >= parseInt(filters.seats.value);
+                const matchesPrice = !filters.price.value || cafe.dataset.price.includes(filters.price.value);
+
+                if (matchesCalls && matchesSockets && matchesToilet && matchesWifi && matchesSeats && matchesPrice) {
+                    cafe.style.display = 'flex';
+                } else {
+                    cafe.style.display = 'none';
+                }
+            });
+        }
+
+        Object.values(filters).forEach(filter => {
+            filter.addEventListener('input', applyFilters);
+        });
+    </script>
+</body>
+</html>
